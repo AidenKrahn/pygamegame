@@ -45,7 +45,26 @@ class Player(object):
                 
             else:
                 win.blit(walkLeft[0], (self.x, self.y))
-            
+                
+                
+class Enemy(self,x,y,width,height,end):
+    walkRight = [pygame.image.load('R1E.png'), pygame.image.load('R2E.png'), pygame.image.load('R3E.png'), pygame.image.load('R4E.png'), pygame.image.load('R5E.png'), pygame.image.load('R6E.png'), pygame.image.load('R7E.png'), pygame.image.load('R8E.png'), pygame.image.load('R9E.png'), pygame.image.load('R10E.png'), pygame.image.load('R11E.png')]
+    walkLeft = [pygame.image.load('L1E.png'), pygame.image.load('L2E.png'), pygame.image.load('L3E.png'), pygame.image.load('L4E.png'), pygame.image.load('L5E.png'), pygame.image.load('L6E.png'), pygame.image.load('L7E.png'), pygame.image.load('L8E.png'), pygame.image.load('L9E.png'), pygame.image.load('L10E.png'), pygame.image.load('L11E.png')]
+    
+    def __init__(self,x,y,width,height,end):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.path = [x, end]
+        self.walkCount = 0
+        self.vel = 42
+        
+    def draw(self,win):
+        pass#https://www.youtube.com/watch?v=vc1pJ8XdZa0&list=PLzMcBGfZo4-lp3jAExUCewBfMx3UZFkh5&index=6
+    
+    def move(self,win):
+        pass
             
 class Projectile(object):
     def __init__(self, x, y, radius, color, facing):
@@ -54,7 +73,7 @@ class Projectile(object):
         self.radius = radius
         self.color = color
         self.facing = facing
-        self.vel = 13 * facing
+        self.vel = 10 * facing
         
     def draw(self,win):
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius) 
@@ -62,12 +81,14 @@ class Projectile(object):
 
 scrwid = 500
 run = True
-man = Player(300, 410, 64, 64)
+man = Player(10, 410, 64, 64)
 bullets = []
 
 def reDrawGameWindow():
     win.blit(bg, (0, 10))
     man.draw(win)
+    for bullet in bullets:
+        bullet.draw(win)
     pygame.display.update()
     
 
@@ -95,8 +116,9 @@ while run == True:
     elif man.right:
         facing = 1
     
-    if keys[pygame.K_SPACE] and bullets < 5:
-        bullets.append(projectile(round(man.x + man.width // 2), round(man.y + man.height // 2), 6, (0,0,0), facing))
+    if keys[pygame.K_SPACE] and len(bullets) < 100:
+        bullets.append(Projectile(round(man.x + man.width // 2), round(man.y + man.height // 2), 6, (0,0,0), facing))
+        
     if keys[pygame.K_LEFT] and man.x > man.vel:
         man.x -= man.vel
         man.left = True
