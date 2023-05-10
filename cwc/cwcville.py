@@ -26,6 +26,7 @@ class Player(object):
         self.right = False
         self.walkCount = 0
         self.standing = True
+        self.hitbox = (self.x + 20, self.y, 28, 60)
         
     def draw(self,win):
         if self.walkCount >= 27:
@@ -46,8 +47,11 @@ class Player(object):
             else:
                 win.blit(walkLeft[0], (self.x, self.y))
                 
+        self.hitbox = (self.x + 18, self.y + 10, 28, 54)        
+        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
                 
-class Enemy(self,x,y,width,height,end):
+                
+class Enemy(object):
     walkRight = [pygame.image.load('R1E.png'), pygame.image.load('R2E.png'), pygame.image.load('R3E.png'), pygame.image.load('R4E.png'), pygame.image.load('R5E.png'), pygame.image.load('R6E.png'), pygame.image.load('R7E.png'), pygame.image.load('R8E.png'), pygame.image.load('R9E.png'), pygame.image.load('R10E.png'), pygame.image.load('R11E.png')]
     walkLeft = [pygame.image.load('L1E.png'), pygame.image.load('L2E.png'), pygame.image.load('L3E.png'), pygame.image.load('L4E.png'), pygame.image.load('L5E.png'), pygame.image.load('L6E.png'), pygame.image.load('L7E.png'), pygame.image.load('L8E.png'), pygame.image.load('L9E.png'), pygame.image.load('L10E.png'), pygame.image.load('L11E.png')]
     
@@ -56,15 +60,50 @@ class Enemy(self,x,y,width,height,end):
         self.y = y
         self.width = width
         self.height = height
-        self.path = [x, end]
+        self.end = end
+        self.path = [self.x, self.end]
         self.walkCount = 0
-        self.vel = 42
+        self.vel = 3
+        self.hitbox = (self.x + 18, self.y + 10, 28, 54)
         
     def draw(self,win):
-        pass#https://www.youtube.com/watch?v=vc1pJ8XdZa0&list=PLzMcBGfZo4-lp3jAExUCewBfMx3UZFkh5&index=6
+        self.move(win)
+        if self.walkCount + 1 >= 33:
+            self.walkCount = 0
+            
+        if self.vel > 0:
+            win.blit(self.walkRight[self.walkCount // 3], (self.x, self.y))
+            self.walkCount += 1
+            
+        else:
+            win.blit(self.walkLeft[self.walkCount // 3], (self.x, self.y))
+            self.walkCount += 1
+            
+        self.hitbox = (self.x + 17, self.y + 2, 31, 57)
+        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        
     
     def move(self,win):
+        if self.vel > 0:
+            if self.x + self.vel < self.path[1]:
+                self.x += self.vel
+                
+            else:
+                self.vel = self.vel * -1
+                self.walkCount = 0
+                
+        else:
+            if self.x - self.vel > self.path[0]:
+                self.x += self.vel
+                
+            else:
+                self.vel = self.vel * -1
+                self.walkCount = 0
+                
+    def hit(self):
         pass
+                
+
             
 class Projectile(object):
     def __init__(self, x, y, radius, color, facing):
@@ -82,11 +121,13 @@ class Projectile(object):
 scrwid = 500
 run = True
 man = Player(10, 410, 64, 64)
+goblin = Enemy(100, 415, 64, 64, 450)
 bullets = []
 
 def reDrawGameWindow():
     win.blit(bg, (0, 10))
     man.draw(win)
+    goblin.draw(win)
     for bullet in bullets:
         bullet.draw(win)
     pygame.display.update()
@@ -103,6 +144,11 @@ while run == True:
             quit()
             
     for bullet in bullets:
+        if bullet.y - bullet.radius < goblin.hitbox[1] + goblin.hitbox[3] and bullet.y + bullet.radius > goblin.hitbox[1]:
+            if bullet.x + bullet.radius > goblin.hitbox[0] and bullet.x - bullet.radius < goblin.hitbox[0] + goblin.hitbox[2]:
+                goblin.hit()
+                bullets.pop(bullets.index(bullet))
+                
         if bullet.x < 500 and bullet.x > 0:
             bullet.x += bullet.vel
             
@@ -116,7 +162,7 @@ while run == True:
     elif man.right:
         facing = 1
     
-    if keys[pygame.K_SPACE] and len(bullets) < 100:
+    if keys[pygame.K_SPACE] and len(bullets) < 10:
         bullets.append(Projectile(round(man.x + man.width // 2), round(man.y + man.height // 2), 6, (0,0,0), facing))
         
     if keys[pygame.K_LEFT] and man.x > man.vel:
@@ -155,3 +201,4 @@ while run == True:
     reDrawGameWindow()
     
 pygame.quit()
+
