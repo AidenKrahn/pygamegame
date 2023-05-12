@@ -7,6 +7,12 @@ pygame.display.set_caption("DooomerCrawl")
 
 clock = pygame.time.Clock()
 
+bulletSound = pygame.mixer.Sound('bullet.mp3')
+hitSound = pygame.mixer.Sound('hit.mp3')
+
+music = pygame.mixer.music.load('music.mp3')
+pygame.mixer.music.play(-1)
+
 
 walkRight = [pygame.image.load('R1.png'), pygame.image.load('R2.png'), pygame.image.load('R3.png'), pygame.image.load('R4.png'), pygame.image.load('R5.png'), pygame.image.load('R6.png'), pygame.image.load('R7.png'), pygame.image.load('R8.png'), pygame.image.load('R9.png')]
 walkLeft = [pygame.image.load('L1.png'), pygame.image.load('L2.png'), pygame.image.load('L3.png'), pygame.image.load('L4.png'), pygame.image.load('L5.png'), pygame.image.load('L6.png'), pygame.image.load('L7.png'), pygame.image.load('L8.png'), pygame.image.load('L9.png')]
@@ -48,7 +54,7 @@ class Player(object):
                 win.blit(walkLeft[0], (self.x, self.y))
                 
         self.hitbox = (self.x + 18, self.y + 10, 28, 54)        
-        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+#         pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
                 
                 
 class Enemy(object):
@@ -65,22 +71,28 @@ class Enemy(object):
         self.walkCount = 0
         self.vel = 3
         self.hitbox = (self.x + 18, self.y + 10, 28, 54)
+        self.health = 10
+        self.visible = True
+        self.door = 50
         
     def draw(self,win):
         self.move(win)
-        if self.walkCount + 1 >= 33:
-            self.walkCount = 0
-            
-        if self.vel > 0:
-            win.blit(self.walkRight[self.walkCount // 3], (self.x, self.y))
-            self.walkCount += 1
-            
-        else:
-            win.blit(self.walkLeft[self.walkCount // 3], (self.x, self.y))
-            self.walkCount += 1
-            
-        self.hitbox = (self.x + 17, self.y + 2, 31, 57)
-        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        if self.visible:
+            if self.walkCount + 1 >= 33:
+                self.walkCount = 0
+                
+            if self.vel > 0:
+                win.blit(self.walkRight[self.walkCount // 3], (self.x, self.y))
+                self.walkCount += 1
+                
+            else:
+                win.blit(self.walkLeft[self.walkCount // 3], (self.x, self.y))
+                self.walkCount += 1
+                
+            pygame.draw.rect(win, (255,0,0), (self.hitbox[0], self.hitbox[1] - 20, 50, 10))
+            pygame.draw.rect(win, (0, 125,0), (self.hitbox[0], self.hitbox[1] - 20, 50 - 5 * (10 - (self.health)), 10))
+            self.hitbox = (self.x + 17, self.y + 2, 31, 57)
+#         pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
         
     
     def move(self,win):
@@ -101,6 +113,11 @@ class Enemy(object):
                 self.walkCount = 0
                 
     def hit(self):
+        if self.health > 0:
+            self.health -= 1
+            
+        else:
+            self.visible = False
         print('hit')
                 
 
@@ -124,10 +141,14 @@ man = Player(10, 410, 64, 64)
 goblin = Enemy(100, 415, 64, 64, 450)
 shootloop = 0
 bullets = []
+score = 0
 facing = -1
+font = pygame.font.SysFont('timesnewroman', 30, True)
 
-def reDrawGameWindow(gourd):
+def reDrawGameWindow():
     win.blit(bg, (0, 10))
+    text = font.render('Score: ' + str(score), 1, (0,0,0))
+    win.blit(text, (650, 10))
     man.draw(win)
     goblin.draw(win)
     for bullet in bullets:
@@ -155,6 +176,7 @@ while run == True:
         if bullet.y - bullet.radius < goblin.hitbox[1] + goblin.hitbox[3] and bullet.y + bullet.radius > goblin.hitbox[1]:
             if bullet.x + bullet.radius > goblin.hitbox[0] and bullet.x - bullet.radius < goblin.hitbox[0] + goblin.hitbox[2]:
                 goblin.hit()
+                score += 1
                 bullets.pop(bullets.index(bullet))
                 
         if bullet.x < 800 and bullet.x > 0:
@@ -210,8 +232,7 @@ while run == True:
             man.isJump = False
             man.jumpCount = 9
             
-    reDrawGameWindow(goblin)
+    reDrawGameWindow()
     
 pygame.quit()
-
 
