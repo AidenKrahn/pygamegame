@@ -1,7 +1,7 @@
 import pygame
 pygame.init()
 
-win = pygame.display.set_mode((500,500))
+win = pygame.display.set_mode((800,500))
 
 pygame.display.set_caption("DooomerCrawl")
 
@@ -101,7 +101,7 @@ class Enemy(object):
                 self.walkCount = 0
                 
     def hit(self):
-        pass
+        print('hit')
                 
 
             
@@ -118,13 +118,15 @@ class Projectile(object):
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius) 
     
 
-scrwid = 500
+scrwid = 800
 run = True
 man = Player(10, 410, 64, 64)
 goblin = Enemy(100, 415, 64, 64, 450)
+shootloop = 0
 bullets = []
+facing = -1
 
-def reDrawGameWindow():
+def reDrawGameWindow(gourd):
     win.blit(bg, (0, 10))
     man.draw(win)
     goblin.draw(win)
@@ -136,7 +138,13 @@ def reDrawGameWindow():
 
 while run == True:
     clock.tick(50)
-    pygame.time.delay(35)
+    pygame.time.delay(30)
+    
+    if shootloop > 0:
+        shootloop += 1
+        
+    if shootloop > 3:
+        shootloop = 0
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -149,21 +157,25 @@ while run == True:
                 goblin.hit()
                 bullets.pop(bullets.index(bullet))
                 
-        if bullet.x < 500 and bullet.x > 0:
+        if bullet.x < 800 and bullet.x > 0:
             bullet.x += bullet.vel
             
         else:
             bullets.pop(bullets.index(bullet))
             
     keys = pygame.key.get_pressed()
-    if man.left:
-        facing = -1
-        
-    elif man.right:
-        facing = 1
     
-    if keys[pygame.K_SPACE] and len(bullets) < 10:
-        bullets.append(Projectile(round(man.x + man.width // 2), round(man.y + man.height // 2), 6, (0,0,0), facing))
+    if keys[pygame.K_SPACE] and shootloop == 0:
+        if man.left:
+            facing = -1
+            
+        elif man.right:
+            facing =1
+            
+        if len(bullets) < 10:
+            bullets.append(Projectile(round(man.x + man.width // 2), round(man.y + man.height // 2), 6, (0,0,0), facing))
+        
+        shootloop = 1
         
     if keys[pygame.K_LEFT] and man.x > man.vel:
         man.x -= man.vel
@@ -198,7 +210,8 @@ while run == True:
             man.isJump = False
             man.jumpCount = 9
             
-    reDrawGameWindow()
+    reDrawGameWindow(goblin)
     
 pygame.quit()
+
 
